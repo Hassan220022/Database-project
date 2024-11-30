@@ -37,13 +37,6 @@ except KeyError as e:
     print(f"Error: Missing configuration for {e}")
     exit(1)
 
-
-# # Database credentials
-# HOST = '196.221.151.195'
-# USER = 'root'
-# PASSWORD = 'FtAL6ljzqY5IC'
-# DATABASE = 'libManagement'
-
 try:
     db = mysql.connector.connect(
         host=HOST,
