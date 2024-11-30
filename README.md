@@ -200,11 +200,7 @@ gui_lb.py
   - **Symptom:** Errors related to password hashing or authentication fails despite correct credentials.
   - **Solution:**
   - Ensure that the bcrypt library is installed.
-  - Verify that passwords are being hashed and verified correctly in 
-
-gui_lb.py
-
-.
+  - Verify that passwords are being hashed and verified correctly in gui_lb.py.
 
 #### 4. **SQL Syntax Errors**
 
