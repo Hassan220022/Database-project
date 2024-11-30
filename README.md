@@ -130,11 +130,8 @@ python gui_lb.py
    - **Username:** Choose a unique username.
    - **Email:** Provide a valid email address.
    - **Password:** Create a secure password.
-   - **Role:** Select your role (
+   - **Role:** Select your role (user or `admin`).
 
-user
-
- or `admin`).
 3. **Submit:**
    - Click the "Submit" button to create a new account.
 
