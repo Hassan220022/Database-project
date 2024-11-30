@@ -197,13 +197,9 @@ gui_lb.py
 
 #### 3. **Password Hashing Issues**
 
-- **Symptom:** Errors related to password hashing or authentication fails despite correct credentials.
-- **Solution:**
-  - Ensure that the 
-
-bcrypt
-
- library is installed.
+  - **Symptom:** Errors related to password hashing or authentication fails despite correct credentials.
+  - **Solution:**
+  - Ensure that the bcrypt library is installed.
   - Verify that passwords are being hashed and verified correctly in 
 
 gui_lb.py
@@ -301,4 +297,4 @@ This project is licensed under the MIT License.
 
 ---
 
-*Developed with ❤️ by Your Mikawi*
+*Developed with ❤️  Your Mikawi*
