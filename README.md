@@ -205,11 +205,7 @@ If you encounter issues not listed here, please refer to the application's log f
 ## Security Considerations
 
 - **Password Security:**
-  - Passwords are hashed using 
-
-bcrypt
-
- before being stored in the database to ensure they are not stored in plain text.
+  - Passwords are hashed using bcrypt before being stored in the database to ensure they are not stored in plain text.
 - **Database Credentials:**
   - Avoid hardcoding sensitive information like database passwords. Consider using environment variables or configuration files to manage credentials securely.
 - **Input Validation:**
