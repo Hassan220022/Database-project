@@ -1,184 +1,415 @@
+import os
 import tkinter
 import tkinter.messagebox
 import customtkinter
+import mysql.connector
+from mysql.connector import Error  # pip install mysql-connector-python
+import logging
+import tkinter as tk  # Modify import for clarity
+from tkinter import ttk  # Import ttk for Treeview
+import bcrypt  # Add bcrypt for password hashing
 
-customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
-customtkinter.set_default_color_theme("dark-blue")  # Themes: "blue" (standard), "green", "dark-blue"
+# Configure logging
+logging.basicConfig(
+    filename='app.log',
+    level=logging.INFO,
+    format='%(asctime)s:%(levelname)s:%(message)s'
+)
 
-import pypyodbc as odbc # pip install pypyodbc
+# Set appearance and theme
+customtkinter.set_appearance_mode("System")  # Modes: "System", "Dark", "Light"
+customtkinter.set_default_color_theme("dark-blue")  # Themes: "blue", "green", "dark-blue"
 
-DRIVER_NAME = 'SQL SERVER'
-SERVER_NAME = 'DESKTOP-BRK7TP3\SQLEXPRESS'
-DATABASE_NAME = 'libManagement'
-connection_string = f"""
-DRIVER={{{DRIVER_NAME}}};
-SERVER={SERVER_NAME};
-DATABASE={DATABASE_NAME};
-Trust_Connection=yes;
-"""
-staff_qry="Select * From Staff"
-author_qry="Select * From Author"
-member_qry="Select * From _Member"
-book_qry="Select * From Book"
-borrow_qry="Select * From Borrow"
-book_insert=""
-db = odbc.connect(connection_string)
-print(db)
-cursor = db.cursor()
+# Database credentials
+HOST = '196.221.151.195'
+USER = 'root'
+PASSWORD = 'FtAL6ljzqY5IC'
+DATABASE = 'libManagement'
 
-cursor.execute(staff_qry)
-staff_list=cursor.fetchall()
+try:
+    db = mysql.connector.connect(
+        host=HOST,
+        user=USER,
+        password=PASSWORD,
+        database=DATABASE
+    )
+    if db.is_connected():
+        print("Connected to MySQL database")
+        cursor = db.cursor()
+except Error as e:
+    print(f"Error: {e}")
+    exit(1)
 
+# Remove references to Staff and Author tables
+
+# Update query to use Users table
+member_qry = "SELECT * FROM Users"
 cursor.execute(member_qry)
-member_list=cursor.fetchall()
+member_list = cursor.fetchall()
 
-cursor.execute(book_qry)
-book_list=cursor.fetchall()
-cursor.execute(borrow_qry)
-borrow_list =cursor.fetchall()
-books=[]
-for book in book_list:
-    for borrow in borrow_list:
-        if book[0]== borrow[3]:
-            continue
-        if book[1]in books: 
-            continue
-        books.append(book[1])
-
-cursor.execute(author_qry)
-author_list=cursor.fetchall()
-authors=[]
-for author in author_list:
-    authors.append(author[1])
-
-
-    
-
+# Initialize the main window
 app = customtkinter.CTk()
-app.geometry("200x200")
-app.title("Library System")
-app.resizable(0,0)
+app.geometry("800x600")  # Adjusted size for login interface
+app.title("Library Management System")
 
+# Shared input fields for Username, Email, and Password
+label_username = customtkinter.CTkLabel(app, text="Username")
+label_username = customtkinter.CTkLabel(app, text="Username")
+label_username.pack(pady=(50, 5))
 
-label = customtkinter.CTkLabel(app, text="Login", fg_color="transparent")
-label.pack(pady=20)
-txt_usr = customtkinter.CTkEntry(app, placeholder_text="Username")
-txt_usr.pack(pady=5,anchor="center")
+entry_username = customtkinter.CTkEntry(app, placeholder_text="Enter Username")
+entry_username.pack(pady=5)
 
-txt_pswrd = customtkinter.CTkEntry(app, placeholder_text="Password")
-txt_pswrd.pack(pady=5,anchor="center")
-def add_book():
-    athr=combobox.get()
+label_email = customtkinter.CTkLabel(app, text="Email")
+label_email.pack(pady=10)
 
-    for author in author_list:
-        if author[1]==athr:
-            athr_id=author[0]
-            print(athr_id)
-    isbn=txt_isbn.get()
-    title=txt_book.get()
-    book_insert=f"""
-insert into Book values('{isbn}','{title}','{athr_id}','{curr_staff}')
-"""
-    print(book_insert)
-    cursor.execute(book_insert)
-    db.commit()
+entry_email = customtkinter.CTkEntry(app, placeholder_text="Enter Email")
+entry_email.pack(pady=5)
 
-def borrow_book():
-    bk=combobox2.get()
+label_password = customtkinter.CTkLabel(app, text="Password")
+label_password.pack(pady=10)
 
-    for book in book_list:
-        if book[1]==bk:
-            isbn=book[0]
-            print(isbn)
-    borrow_id=txt_borrow_id.get()
-    duedate=txt_duedate.get()
-    book_insert=f"""
-insert into Borrow values('{borrow_id}','{duedate}','{curr_member}','{isbn}')
-"""
-    print(book_insert)
-    cursor.execute(book_insert)
-    db.commit()
+entry_password = customtkinter.CTkEntry(app, placeholder_text="Enter Password", show="*")
+entry_password.pack(pady=5)
 
-def member_window():
-    global txt_borrow_id
-    global txt_duedate
-    global combobox2
-    m_app=customtkinter.CTkToplevel()
-    m_app.geometry("200x250")
-    m_app.resizable(0,0)
-    label = customtkinter.CTkLabel(m_app, text="Borrow Books", fg_color="transparent")
-    label.pack(pady=20)
-    txt_borrow_id = customtkinter.CTkEntry(m_app, placeholder_text="BorrowID")
-    txt_borrow_id.pack(pady=5,anchor="center")
-    txt_duedate = customtkinter.CTkEntry(m_app, placeholder_text="Date:YYYY-MM-DD")
-    txt_duedate.pack(pady=5,anchor="center")
-    combobox2 = customtkinter.CTkComboBox(m_app, values=books,command=combobox_callback)
-    combobox2.set("Book Title")
-    combobox2.pack(pady=5)
-    add_btn = customtkinter.CTkButton(m_app, text="Borrow Book", command=borrow_book)
-    add_btn.pack(pady=5,anchor="center")
-    m_app.focus()
+# Frame for Sign In and Sign Up buttons
+button_frame = customtkinter.CTkFrame(app)
+button_frame.pack(pady=20)
 
+# Modify the sign-up action to interact with the database with password hashing
+def signup_action():
+    username = entry_username.get()
+    email = entry_email.get()
+    password = entry_password.get()
+    if not username or not email or not password:
+        tkinter.messagebox.showerror("Error", "Please fill all fields.")
+        return
+    try:
+        # Check if the username or email already exists
+        check_qry = "SELECT * FROM Users WHERE username = %s OR email = %s"
+        cursor.execute(check_qry, (username, email))
+        if cursor.fetchone():
+            tkinter.messagebox.showerror("Error", "Username or email already exists.")
+            return
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        # Insert the new user into the database
+        insert_qry = "INSERT INTO Users (username, password, email) VALUES (%s, %s, %s)"
+        cursor.execute(insert_qry, (username, hashed_password.decode('utf-8'), email))
+        db.commit()
+        tkinter.messagebox.showinfo("Success", "Signup successful!")
+    except Error as e:
+        logging.error(f"Signup failed for user {username}: {e}")
+        tkinter.messagebox.showerror("Error", f"Failed to signup: {e}")
 
+# Modify the sign-in action to validate against the database and handle admin login with hashed passwords
+def sign_in_action():
+    username = entry_username.get()
+    password = entry_password.get()
+    if not username or not password:
+        tkinter.messagebox.showerror("Error", "Please enter both username and password.")
+        return
+    try:
+        # Fetch the user record
+        validate_qry = "SELECT password, role FROM Users WHERE username = %s"
+        cursor.execute(validate_qry, (username,))
+        user = cursor.fetchone()
+        if user:
+            stored_password, role = user
+            # Verify the hashed password
+            if bcrypt.checkpw(password.encode('utf-8'), stored_password.encode('utf-8')):
+                if role == 'admin':
+                    app.withdraw()
+                    open_admin_page()
+                else:
+                    app.withdraw()
+                    open_library()
+                return
+        tkinter.messagebox.showerror("Error", "Invalid username or password")
+    except Error as e:
+        logging.error(f"Sign-in failed for user {username}: {e}")
+        tkinter.messagebox.showerror("Error", f"Failed to sign in: {e}")
 
-def staff_window():
-    global txt_isbn
-    global txt_book
-    global combobox
-    s_app=customtkinter.CTkToplevel()
-    s_app.geometry("200x250")
-    s_app.resizable(0,0)
-    label = customtkinter.CTkLabel(s_app, text="Add Books", fg_color="transparent")
-    label.pack(pady=20)
-    txt_book = customtkinter.CTkEntry(s_app, placeholder_text="Title")
-    txt_book.pack(pady=5,anchor="center")
-    txt_isbn = customtkinter.CTkEntry(s_app, placeholder_text="ISBN")
-    txt_isbn.pack(pady=5,anchor="center")
-    combobox = customtkinter.CTkComboBox(s_app, values=authors,command=combobox_callback)
-    combobox.set("Author")
-    combobox.pack(pady=5)
-    add_btn = customtkinter.CTkButton(s_app, text="Add Book", command=add_book)
-    add_btn.pack(pady=5,anchor="center")
-    s_app.focus()
+# Sign In and Sign Up buttons
+sign_in_button = customtkinter.CTkButton(button_frame, text="Sign In", command=sign_in_action)
+sign_in_button.pack(side="left", padx=10)
 
+signup_button = customtkinter.CTkButton(button_frame, text="Sign Up", command=signup_action)
+signup_button.pack(side="left", padx=10)
 
+# Define function to open the library view
+def open_library():
+    library_window = customtkinter.CTkToplevel(app)
+    library_window.geometry("800x600")
+    library_window.title("Library")
 
-def combobox_callback(choice):
-    print("combobox dropdown clicked:", choice)
+    # Frame for search bar
+    search_frame = customtkinter.CTkFrame(library_window)
+    search_frame.pack(pady=10, padx=10, fill="x")
 
+    label_search = customtkinter.CTkLabel(search_frame, text="Search:")
+    label_search.pack(side="left", padx=(0, 10))
 
-def login():
-    global x
-    x = 0
-    global curr_staff
-    global curr_member
-    for staff in staff_list:
+    entry_search = customtkinter.CTkEntry(search_frame, placeholder_text="Enter Title or ISBN")
+    entry_search.pack(side="left", fill="x", expand=True, padx=(0, 10))
 
-        print(staff[0]+str(x))
-        x=x+1
-        print(txt_pswrd.get())
-        if staff[0]==txt_pswrd.get():
-            if staff[1]==txt_usr.get():
-                curr_staff=txt_pswrd.get()
-                app.withdraw()
-                staff_window()
-                break
-    x=0
-    for member in member_list:
+    def search_books():
+        query = entry_search.get().strip()
+        if not query:
+            refresh_treeview()
+            return
+        search_qry = """
+        SELECT isbn, title, author
+        FROM Books
+        WHERE isbn LIKE %s OR title LIKE %s OR author LIKE %s
+        """
+        like_query = f"%{query}%"
+        cursor.execute(search_qry, (like_query, like_query, like_query))
+        filtered_books = cursor.fetchall()
+        update_treeview(filtered_books)
 
-        print(member[0]+str(x))
-        x=x+1
-        print(txt_pswrd.get())
-        if member[0]==txt_pswrd.get():
-            if member[1]==txt_usr.get():
-                curr_member=txt_pswrd.get()
-                app.withdraw()
-                member_window()
-                break
+    search_button = customtkinter.CTkButton(search_frame, text="Search", command=search_books)
+    search_button.pack(side="left")
 
-    print("button pressed")
+    # Add Exit button
+    exit_button = customtkinter.CTkButton(library_window, text="Exit", command=lambda: exit_library(library_window))
+    exit_button.pack(pady=10)
 
-login_btn = customtkinter.CTkButton(app, text="Login", command=login)
-login_btn.pack(pady=5,anchor="center")
+    def exit_library(window):
+        window.destroy()
+        app.deiconify()
 
+    # Fetch books
+    library_qry = "SELECT isbn, title, author FROM Books"
+    cursor.execute(library_qry)
+    books = cursor.fetchall()
+
+    # Display books in a Treeview for better presentation
+    tree = ttk.Treeview(library_window, columns=("ISBN", "Title", "Author"), show="headings")
+    tree.heading("ISBN", text="ISBN")
+    tree.heading("Title", text="Title")
+    tree.heading("Author", text="Author")
+
+    # Set column widths
+    tree.column("ISBN", width=100)
+    tree.column("Title", width=300)
+    tree.column("Author", width=200)
+
+    # Vertical scrollbar for the treeview
+    scrollbar = ttk.Scrollbar(library_window, orient="vertical", command=tree.yview)
+    tree.configure(yscroll=scrollbar.set)
+    scrollbar.pack(side="right", fill="y")
+
+    # Function to insert books into the treeview
+    def refresh_treeview():
+        for item in tree.get_children():
+            tree.delete(item)
+        cursor.execute(library_qry)
+        all_books = cursor.fetchall()
+        for book in all_books:
+            tree.insert("", tk.END, values=book)
+
+    def update_treeview(book_list):
+        for item in tree.get_children():
+            tree.delete(item)
+        for book in book_list:
+            tree.insert("", tk.END, values=book)
+
+    tree.pack(fill="both", expand=True, padx=20, pady=10)
+
+    refresh_treeview()
+
+# Define function to open the admin page
+def open_admin_page():
+    admin_window = customtkinter.CTkToplevel(app)
+    admin_window.geometry("800x600")
+    admin_window.title("Admin Page")
+
+    # Frame for adding new books
+    add_frame = customtkinter.CTkFrame(admin_window)
+    add_frame.pack(pady=10, padx=10, fill="x")
+
+    label_add = customtkinter.CTkLabel(add_frame, text="Add New Book")
+    label_add.pack(pady=5)
+
+    entry_add_isbn = customtkinter.CTkEntry(add_frame, placeholder_text="ISBN")
+    entry_add_isbn.pack(pady=5)
+
+    entry_add_title = customtkinter.CTkEntry(add_frame, placeholder_text="Title")
+    entry_add_title.pack(pady=5)
+
+    entry_add_author = customtkinter.CTkEntry(add_frame, placeholder_text="Author Name")
+    entry_add_author.pack(pady=5)
+
+    add_book_button = customtkinter.CTkButton(
+        add_frame, 
+        text="Add Book", 
+        command=lambda: admin_add_book(
+            entry_add_isbn.get(), 
+            entry_add_title.get(), 
+            entry_add_author.get(),
+            entry_add_isbn,
+            entry_add_title,
+            entry_add_author
+        )
+    )
+    add_book_button.pack(pady=5)
+
+    # Frame for editing existing books
+    edit_frame = customtkinter.CTkFrame(admin_window)
+    edit_frame.pack(pady=10, padx=10, fill="x")
+
+    label_edit = customtkinter.CTkLabel(edit_frame, text="Edit Existing Book")
+    label_edit.pack(pady=5)
+
+    entry_edit_isbn = customtkinter.CTkEntry(edit_frame, placeholder_text="ISBN of Book to Edit")
+    entry_edit_isbn.pack(pady=5)
+
+    entry_edit_title = customtkinter.CTkEntry(edit_frame, placeholder_text="New Title")
+    entry_edit_title.pack(pady=5)
+
+    entry_edit_author = customtkinter.CTkEntry(edit_frame, placeholder_text="New Author Name")
+    entry_edit_author.pack(pady=5)
+
+    edit_book_button = customtkinter.CTkButton(
+        edit_frame, 
+        text="Edit Book", 
+        command=lambda: admin_edit_book(
+            entry_edit_isbn.get(), 
+            entry_edit_title.get(), 
+            entry_edit_author.get(),
+            admin_tree
+        )
+    )
+    edit_book_button.pack(pady=5)
+
+    # Add Exit button
+    exit_admin_button = customtkinter.CTkButton(admin_window, text="Exit", command=lambda: exit_admin(admin_window))
+    exit_admin_button.pack(pady=10)
+
+    def exit_admin(window):
+        window.destroy()
+        app.deiconify()
+
+    # Display books in a Treeview for admin
+    library_qry = "SELECT isbn, title, author FROM Books"
+    cursor.execute(library_qry)
+    books = cursor.fetchall()
+
+    global admin_tree  # Declare tree as global
+    admin_tree = ttk.Treeview(admin_window, columns=("ISBN", "Title", "Author"), show="headings")
+    admin_tree.heading("ISBN", text="ISBN")
+    admin_tree.heading("Title", text="Title")
+    admin_tree.heading("Author", text="Author")
+
+    # Set column widths
+    admin_tree.column("ISBN", width=100)
+    admin_tree.column("Title", width=300)
+    admin_tree.column("Author", width=200)
+
+    # Vertical scrollbar for the treeview
+    scrollbar = ttk.Scrollbar(admin_window, orient="vertical", command=admin_tree.yview)
+    admin_tree.configure(yscroll=scrollbar.set)
+    scrollbar.pack(side="right", fill="y")
+
+    # Function to insert books into the treeview
+    def refresh_admin_treeview():
+        for item in admin_tree.get_children():
+            admin_tree.delete(item)
+        cursor.execute(library_qry)
+        all_books = cursor.fetchall()
+        for book in all_books:
+            admin_tree.insert("", tk.END, values=book)
+
+    admin_tree.pack(fill="both", expand=True, padx=20, pady=10)
+
+    refresh_admin_treeview()
+
+# Define admin add book functionality
+def admin_add_book(isbn, title, author_name, entry_isbn, entry_title, entry_author):
+    if not isbn or not title or not author_name:
+        tkinter.messagebox.showerror("Error", "Please fill all fields to add a book.")
+        return
+    try:
+        # Check if the book ISBN already exists
+        check_qry = "SELECT * FROM Books WHERE isbn = %s"
+        cursor.execute(check_qry, (isbn,))
+        if cursor.fetchone():
+            tkinter.messagebox.showerror("Error", "A book with this ISBN already exists.")
+            return
+        # Insert the new book
+        insert_book_qry = "INSERT INTO Books (isbn, title, author) VALUES (%s, %s, %s)"
+        cursor.execute(insert_book_qry, (isbn, title, author_name))
+        db.commit()
+        tkinter.messagebox.showinfo("Success", "Book added successfully!")
+        
+        # Insert the new book into the Treeview
+        admin_tree.insert("", tk.END, values=(isbn, title, author_name))
+        
+        # Clear the input fields
+        entry_isbn.delete(0, tk.END)
+        entry_title.delete(0, tk.END)
+        entry_author.delete(0, tk.END)
+    except Error as e:
+        logging.error(f"Failed to add book: {e}")
+        tkinter.messagebox.showerror("Error", f"Failed to add book: {e}")
+
+# Define admin edit book functionality
+def admin_edit_book(isbn, new_title, new_author_name, admin_tree):
+    if not isbn:
+        tkinter.messagebox.showerror("Error", "Please enter the ISBN of the book to edit.")
+        return
+    try:
+        # Check if the book exists
+        check_qry = "SELECT * FROM Books WHERE isbn = %s"
+        cursor.execute(check_qry, (isbn,))
+        book = cursor.fetchone()
+        if not book:
+            tkinter.messagebox.showerror("Error", "Book not found.")
+            return
+        updates = []
+        params = []
+        
+        # Update title if provided
+        if new_title:
+            updates.append("title = %s")
+            params.append(new_title)
+        
+        # Update author if provided
+        if new_author_name:
+            updates.append("author = %s")
+            params.append(new_author_name)
+        
+        if not updates:
+            tkinter.messagebox.showwarning("Warning", "No fields to update.")
+            return
+        
+        update_book_qry = f"UPDATE Books SET {', '.join(updates)} WHERE isbn = %s"
+        params.append(isbn)
+        
+        cursor.execute(update_book_qry, tuple(params))
+        db.commit()
+        tkinter.messagebox.showinfo("Success", "Book updated successfully!")
+        
+        # Refresh the admin_tree to reflect changes
+        refresh_admin_treeview(admin_tree)
+    except Error as e:
+        logging.error(f"Failed to edit book: {e}")
+        tkinter.messagebox.showerror("Error", f"Failed to edit book: {e}")
+
+# Function to refresh the Treeview
+def refresh_admin_treeview(admin_tree):
+    for item in admin_tree.get_children():
+        admin_tree.delete(item)
+    cursor.execute("SELECT isbn, title, author FROM Books")
+    all_books = cursor.fetchall()
+    for book in all_books:
+        admin_tree.insert("", tk.END, values=book)
+
+# Start the main loop
 app.mainloop()
+
+# Close the database connection when the application is closed
+if db.is_connected():
+    cursor.close()
+    db.close()
+    print("MySQL connection is closed")
