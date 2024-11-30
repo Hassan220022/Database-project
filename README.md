@@ -88,11 +88,8 @@ mysql -u root -p < setup_database.sql
 
 ### 3. Configure Database Credentials
 
-Open the 
-
-gui_lb.py
-
- file and update the database credentials to match your MySQL configuration.
+Open the **gui_lb.py**
+file and update the database credentials to match your MySQL configuration.
 
 ```python
 # Database credentials
@@ -174,21 +171,13 @@ user
 
 - **Error Message:** `"Error: 1045 (28000): Access denied for user 'root'@'localhost'"`
 - **Solution:**
-  - Verify that the MySQL credentials in 
-
-gui_lb.py
-
- are correct.
+  - Verify that the MySQL credentials in gui_lb.py are correct.
   - Ensure that the MySQL server is running.
   - Check user privileges for the MySQL user.
 
 #### 2. **Missing Python Libraries**
 
-- **Symptom:** Import errors when running 
-
-gui_lb.py
-
-.
+- **Symptom:** Import errors when running gui_lb.py.
 - **Solution:**
   - Install the required libraries using:
     ```bash
@@ -206,20 +195,12 @@ gui_lb.py
 
 - **Symptom:** Errors when executing SQL scripts.
 - **Solution:**
-  - Ensure that 
-
-setup_database.sql
-
- is executed without modifications.
+  - Ensure that setup_database.sql is executed without modifications.
   - Check for typos or unintended changes in the SQL script.
 
 ### Additional Help
 
-If you encounter issues not listed here, please refer to the application's log file 
-
-app.log
-
- for detailed error messages or open an issue in the [GitHub repository](https://github.com/Hassan220022/library-management-system/issues).
+If you encounter issues not listed here, please refer to the application's log file app.log for detailed error messages or open an issue in the [GitHub repository](https://github.com/Hassan220022/library-management-system/issues).
 
 ## Security Considerations
 
