@@ -8,6 +8,7 @@ import logging
 import tkinter as tk  # Modify import for clarity
 from tkinter import ttk  # Import ttk for Treeview
 import bcrypt  # Add bcrypt for password hashing
+import configparser
 
 # Configure logging
 logging.basicConfig(
@@ -20,11 +21,28 @@ logging.basicConfig(
 customtkinter.set_appearance_mode("System")  # Modes: "System", "Dark", "Light"
 customtkinter.set_default_color_theme("dark-blue")  # Themes: "blue", "green", "dark-blue"
 
-# Database credentials
-HOST = '196.221.151.195'
-USER = 'root'
-PASSWORD = 'FtAL6ljzqY5IC'
-DATABASE = 'libManagement'
+# Initialize ConfigParser
+config = configparser.ConfigParser()
+
+# Read config.ini
+config.read('config.ini')
+
+try:
+    HOST = config['mysql']['host']
+    USER = config['mysql']['user']
+    PASSWORD = config['mysql']['password']
+    DATABASE = config['mysql']['database']
+except KeyError as e:
+    logging.error(f"Missing configuration for {e}")
+    print(f"Error: Missing configuration for {e}")
+    exit(1)
+
+
+# # Database credentials
+# HOST = '196.221.151.195'
+# USER = 'root'
+# PASSWORD = 'FtAL6ljzqY5IC'
+# DATABASE = 'libManagement'
 
 try:
     db = mysql.connector.connect(
